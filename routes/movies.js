@@ -1,26 +1,31 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const {
-  getUsers, patchUser,
-} = require('../controllers/users');
+  getMovies, createMovie, checkMovieOwner, deleteMovie,
+} = require('../controllers/movies');
+const urlRegexp = require('../constants/patterns');
 
-router.get('/', getUsers);
-router.get('/me', getCurrentUser);
-router.patch('/me', celebrate({
+router.get('/', getMovies);
+router.post('/', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
+    country: Joi.string().required(),
+    director: Joi.string().required(),
+    duration: Joi.number().required(),
+    year: Joi.string().required(),
+    description: Joi.string().required(),
+    image: Joi.string().required().pattern(urlRegexp),
+    trailerLink: Joi.string().required().pattern(urlRegexp),
+    thumbnail: Joi.string().required().pattern(urlRegexp),
+    movieId: Joi.number().required(),
+    nameRU: Joi.string().required(),
+    nameEN: Joi.string().required(),
   }),
-}), patchUser);
-router.get('/:id', celebrate({
+}), createMovie);
+
+router.delete('/:id', celebrate({
   params: Joi.object().keys({
     id: Joi.string().alphanum().length(24),
   }),
-}), getUserById);
-router.patch('/me/avatar', celebrate({
-  body: Joi.object().keys({
-    avatar: Joi.string().required().pattern(/^((http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-/])*)?/),
-  }),
-}), patchUserAvatar);
+}), checkMovieOwner, deleteMovie);
 
 module.exports = router;

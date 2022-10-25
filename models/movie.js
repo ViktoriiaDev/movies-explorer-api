@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
-
-const urlRegexp = /^((http|https):\/\/)?(www\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9-]*\.?)*\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(\/([\w#!:.?+=&%@!\-/])*)?/;
+const urlRegexp = require('../constants/patterns');
 
 const movieSchema = new mongoose.Schema({
   // страна создания фильма
