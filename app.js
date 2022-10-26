@@ -4,12 +4,15 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
-const { celebrate, Joi } = require('celebrate');
+// const { celebrate, Joi } = require('celebrate');
 const userRoute = require('./routes/users');
 const moviesRoute = require('./routes/movies');
 const { login, createUser } = require('./controllers/users');
 const { auth } = require('./middlewares/auth');
+const { errorMiddleware } = require('./middlewares/error-middleware');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { loginValidation, createUserValidation } = require('./middlewares/validation');
+const { rateLimiter } = require('./middlewares/rate-limiter');
 const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
@@ -39,25 +42,17 @@ app.get('/crash-test', () => {
 });
 
 // регистрация и логин
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), login);
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), createUser);
+app.post('/signin', loginValidation, login);
+
+app.post('/signup', createUserValidation, createUser);
 
 // авторизация
 app.use(auth);
 
 app.use('/users', userRoute);
 app.use('/movies', moviesRoute);
+
+app.use(rateLimiter);
 
 app.use('/', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
@@ -67,15 +62,7 @@ app.use(errorLogger); // подключаем логгер ошибок
 
 app.use(errors()); // обработчик ошибок celebrate
 
-// это обработчик ошибки
-app.use((error, req, res, next) => {
-  // если у ошибки нет статуса, выставляем 500;
-  const { statusCode = 500, message } = error;
-  res.status(statusCode).send({
-    // проверяем статус и выставляем сообщение в зависимости от него
-    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
-  });
-  next();
-});
+// центральный обработчик ошибки
+app.use(errorMiddleware);
 
-app.listen(3001);
+app.listen(3000);
