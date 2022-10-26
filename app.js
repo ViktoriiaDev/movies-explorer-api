@@ -1,24 +1,23 @@
 require('dotenv').config();
+
+const { MONGO_URL = 'mongodb://localhost:27017/moviesdb' } = process.env;
 const express = require('express');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
-// const { celebrate, Joi } = require('celebrate');
-const userRoute = require('./routes/users');
-const moviesRoute = require('./routes/movies');
-const { login, createUser } = require('./controllers/users');
-const { auth } = require('./middlewares/auth');
+const router = require('./routes');
+
 const { errorMiddleware } = require('./middlewares/error-middleware');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const { loginValidation, createUserValidation } = require('./middlewares/validation');
+
 const { rateLimiter } = require('./middlewares/rate-limiter');
 const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
 
 mongoose.connect(
-  'mongodb://localhost:27017/moviesdb',
+  MONGO_URL,
   {
     useNewUrlParser: true,
     autoIndex: true,
@@ -32,25 +31,10 @@ mongoose.connect(
 );
 
 app.use(bodyParser.json());
-app.use(requestLogger); // подключаем логгер запросов
-app.use(cors());
+app.use(requestLogger); // логгер запросов
+app.use(helmet()); // установка заголовков
 
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
-
-// регистрация и логин
-app.post('/signin', loginValidation, login);
-
-app.post('/signup', createUserValidation, createUser);
-
-// авторизация
-app.use(auth);
-
-app.use('/users', userRoute);
-app.use('/movies', moviesRoute);
+app.use(router);
 
 app.use(rateLimiter);
 
@@ -62,7 +46,7 @@ app.use(errorLogger); // подключаем логгер ошибок
 
 app.use(errors()); // обработчик ошибок celebrate
 
-// центральный обработчик ошибки
+// центральный обработчик ошибок
 app.use(errorMiddleware);
 
 app.listen(3000);
