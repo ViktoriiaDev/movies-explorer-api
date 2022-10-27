@@ -3,4 +3,4 @@
 Репозиторий для бэкенд части сервиса, в котором можно найти фильмы по запросу и сохранить в личном кабинете.
 Дипломная работа в Яндекс.Практикуме.
 
-Ссылка на Api: https://api.diploma.viktoriiadev.nomoredomains.icu/api Публичный IP-адрес: 51.250.6.88
+Ссылка на Api: https://api.diploma.viktoriiadev.nomoredomains.icu Публичный IP-адрес: 51.250.6.88
