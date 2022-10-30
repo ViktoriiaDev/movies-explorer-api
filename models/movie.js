@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const urlRegexp = require('../constants/patterns');
+const { modelMovieError } = require('../constants/error-messages');
 
 const movieSchema = new mongoose.Schema({
   // страна создания фильма
@@ -34,7 +35,7 @@ const movieSchema = new mongoose.Schema({
       validator(value) {
         return urlRegexp.test(value);
       },
-      message: 'Некорректный url',
+      message: modelMovieError.incorrectUrl,
     },
   },
   // ссылка на трейлер фильма
@@ -44,7 +45,7 @@ const movieSchema = new mongoose.Schema({
       validator(value) {
         return urlRegexp.test(value);
       },
-      message: 'Некорректный url',
+      message: modelMovieError.incorrectUrl,
     },
   },
   // миниатюрное изображение постера к фильму
@@ -54,7 +55,7 @@ const movieSchema = new mongoose.Schema({
       validator(value) {
         return urlRegexp.test(value);
       },
-      message: 'Некорректный url',
+      message: modelMovieError.incorrectUrl,
     },
   },
   // _id пользователя, который сохранил фильм

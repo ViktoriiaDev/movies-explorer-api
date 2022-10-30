@@ -5,14 +5,22 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const ConflictError = require('../errors/ConflictError');
-const AuthorisationError = require('../errors/AuthorisationError');
+const { userError } = require('../constants/error-messages');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-module.exports.getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch(next);
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new NotFoundError(userError.notFoundUserId);
+    })
+    .then((user) => res.send({ data: user }))
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        return next(new ValidationError(userError.incorrectDataForGetUser));
+      }
+      return next(error);
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -22,7 +30,7 @@ module.exports.createUser = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        return next(new ConflictError('Пользователь с такой почтой уже существует'));
+        return next(new ConflictError(userError.emailConflictError));
       }
       return undefined;
     })
@@ -36,7 +44,7 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return next(new ValidationError('Переданы некорректные данные при создании пользователя'));
+        return next(new ValidationError(userError.incorrectDataForCreateUser));
       }
       return next(error);
     });
@@ -51,12 +59,14 @@ module.exports.patchUser = (req, res, next) => {
     { new: true, runValidators: true },
   )
     .orFail(() => {
-      throw new NotFoundError('Пользователь с данным _id не найден');
+      throw new NotFoundError(userError.notFoundUserId);
     })
     .then((user) => res.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return next(new ValidationError('Переданы некорректные данные при обновлении пользователя'));
+        next(new ValidationError(userError.incorrectDataForUpdateUser));
+      } else if (error.code === 11000) {
+        return next(new ConflictError(userError.emailConflictError));
       }
       return next(error);
     });
@@ -76,10 +86,5 @@ module.exports.login = (req, res, next) => {
         },
       });
     })
-    .catch((error) => {
-      if (error.name === 'Error') {
-        return next(new AuthorisationError('Неправильные почта или пароль'));
-      }
-      return next(error);
-    });
+    .catch(next);
 };
