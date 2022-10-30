@@ -33,10 +33,10 @@ module.exports.checkMovieOwner = (req, res, next) => {
   Movie.findById({ _id: id })
     .then((movie) => {
       if (movie && movie.owner.toString() !== req.user._id) {
-        return next(new ForbiddenError(movieError.forbiddenErrorMovie));
+        next(new ForbiddenError(movieError.forbiddenErrorMovie));
+        return;
       }
       next();
-      return undefined;
     })
     .catch(next);
 };

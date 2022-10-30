@@ -1,11 +1,13 @@
 require('dotenv').config();
 
+const { NODE_ENV, MONGO_URL } = process.env;
+
 const express = require('express');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
-const MONGO_URL = require('./constants/config');
+const mongoUrlLocal = require('./constants/config');
 const router = require('./routes');
 
 const { errorMiddleware } = require('./middlewares/error-middleware');
@@ -16,7 +18,7 @@ const { rateLimiter } = require('./middlewares/rate-limiter');
 const app = express();
 
 mongoose.connect(
-  MONGO_URL,
+  NODE_ENV === 'production' ? MONGO_URL : mongoUrlLocal,
   {
     useNewUrlParser: true,
     autoIndex: true,
@@ -29,9 +31,9 @@ mongoose.connect(
   },
 );
 
-app.use(rateLimiter); //  подключение лимитера
 app.use(bodyParser.json());
 app.use(requestLogger); // логгер запросов
+app.use(rateLimiter); //  подключение лимитера
 app.use(helmet()); // установка заголовков
 
 app.use(router); //  подключение роутеров

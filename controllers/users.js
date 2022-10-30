@@ -30,9 +30,8 @@ module.exports.createUser = (req, res, next) => {
   User.findOne({ email })
     .then((user) => {
       if (user) {
-        return next(new ConflictError(userError.emailConflictError));
+        next(new ConflictError(userError.emailConflictError));
       }
-      return undefined;
     })
     .then(() => bcrypt.hash(password, 10))
     .then((hash) => User.create({

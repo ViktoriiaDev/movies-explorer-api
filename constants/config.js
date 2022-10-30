@@ -1,3 +1,3 @@
-const MONGO_URL = 'mongodb://localhost:27017/moviesdb';
+const mongoUrlLocal = 'mongodb://localhost:27017/moviesdb';
 
-module.exports = MONGO_URL;
+module.exports = mongoUrlLocal;
