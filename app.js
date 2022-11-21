@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const { NODE_ENV, MONGO_URL } = process.env;
 
+const cors = require('cors');
 const express = require('express');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
@@ -33,9 +34,10 @@ mongoose.connect(
 
 app.use(bodyParser.json());
 app.use(requestLogger); // логгер запросов
+app.use(cors());
+
 app.use(rateLimiter); //  подключение лимитера
 app.use(helmet()); // установка заголовков
-
 app.use(router); //  подключение роутеров
 
 app.use(errorLogger); // подключаем логгер ошибок
